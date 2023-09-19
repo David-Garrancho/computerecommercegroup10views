@@ -25,6 +25,10 @@ const store = createStore({
     setCart(state, cart) {
       state.cart = cart;
     },
+    resetCart(state) {
+    state.cart = [];
+    localStorage.removeItem('cart');
+  },
   },
   actions: {
     addProductToCart({ commit }, product) {
@@ -46,6 +50,9 @@ const store = createStore({
         const cart = JSON.parse(cartData);
         commit('setCart', cart);
       }
+    },
+    resetCart({ commit }) {
+      commit('resetCart');
     },
   },
   getters: {

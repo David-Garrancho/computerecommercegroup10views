@@ -19,11 +19,6 @@
       </template>
     </nav>
     <router-view />
-
-    <!-- Conditionally render the Cart component -->
-    <div v-if="isCartOpen">
-      <Cart /> <!-- Include your Cart component here -->
-    </div>
   </div>
 </template>
 

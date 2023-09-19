@@ -85,6 +85,19 @@ const routes = [
       cartItems: route.query.cartItems,
     }),
   },
+  {
+    path: '/invoice-view/:invoiceId', // You can pass the invoice ID as a parameter
+    name: 'InvoiceView',
+    component: () => import(/* webpackChunkName: "about" */ '../components/Invoice.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/purchaseHistory',
+    name: 'PurchaseHistory',
+    component: () => import(/* webpackChunkName: "about" */ '../components/PurchaseHistory.vue'),
+    meta: { requiresAuth: true },
+  },
+  
 ]
 
 const router = createRouter({

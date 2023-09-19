@@ -14,6 +14,11 @@ class CustomerService {
   updateCustomer(userData) {
     return axios.post(`${BASE_URL}/update`, userData);
   }
+
+  deleteCustomer(){
+    return axios.post(`${BASE_URL}/delete`, userData);
+  }
+
 }
 
 export default new CustomerService();

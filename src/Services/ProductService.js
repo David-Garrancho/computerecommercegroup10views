@@ -7,6 +7,9 @@ const ProductService = {
   getProducts: () => {
     return axios.get(`${BASE_URL}/getAll`);
   },
+  getProductById: (productId) => {
+    return axios.get(`${BASE_URL}/${productId}`);
+  },
 
 };
 
