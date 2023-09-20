@@ -3,16 +3,15 @@
     <nav>
       <router-link to="/">Home</router-link> |
       <router-link to="/about">About</router-link>
-      <!-- Conditionally show login and register links based on user login status -->
       <template v-if="!user">
         | <router-link to="/login">Login</router-link> |
         <router-link to="/register">Register</router-link>
       </template>
-      <!-- Conditionally show Customer Dashboard and Logout when the user is logged in -->
       <template v-if="user">
         | <router-link to="/customerdashboard">Customer Dashboard</router-link>
+        | <router-link to="/enquiry">Enquiry</router-link>
         | <router-link to="/product">Products</router-link> 
-        | <router-link to="/cart">Cart ({{ cartItemCount }})</router-link> <!-- Display cart item count -->
+        | <router-link to="/cart">Cart ({{ cartItemCount }})</router-link>
         | <router-link to="/customeraccount">Account</router-link>
         | <router-link to="/purchaseHistory">Purchase History</router-link>
         | <button @click="logout">Logout</button>
@@ -22,10 +21,11 @@
   </div>
 </template>
 
+
 <script>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
-import Cart from './components/Cart.vue'; // Import the Cart component
+import Cart from './components/Cart.vue';
 
 export default {
   name: 'App',
@@ -34,7 +34,7 @@ export default {
       return this.$store.getters.getUser;
     },
     cartItemCount() {
-      // Compute the cart item count based on the length of the cart array
+
       return this.$store.state.cart.length;
     },
   },
@@ -45,20 +45,18 @@ export default {
       this.$router.push('/login');
     },
     toggleCart() {
-      // Implement a method to open/close the cart overlay
-      // You can use Vuex to manage the cart state
+
     },
   },
   components: {
-    Cart, // Register the Cart component for use in this template
+    Cart,
   },
   data() {
     return {
-      isCartOpen: false, // Initialize the cart state as closed
+      isCartOpen: false,
     };
   },
   created() {
-    // Dispatch the action to load cart data from local storage
     this.$store.dispatch('loadCartFromLocalStorage');
   },
 };

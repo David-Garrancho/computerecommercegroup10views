@@ -77,7 +77,7 @@ export default {
 
     const user = computed(() => store.getters.getUser);
     const storeDetails = ref([]);
-    const selectedStore = ref(null); // Define selectedStore here
+    const selectedStore = ref(null);
 
     const parsedCartItems = computed(() => {
       try {

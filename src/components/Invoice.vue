@@ -5,8 +5,8 @@
         <p>Invoice Number: {{ invoiceData.invoiceNumber }}</p>
         <p>Sales Number: {{ invoiceData.sales.saleID }}</p>
         <p>Date of Sale: {{ invoiceData.sales.saleDate }}</p>
-        <p>Store: {{ invoiceData.storeDetails.storeName }}</p>
         <p>Amount: R {{ invoiceData.sales.totalAmount }} (incl. Vat)</p>
+        <p>Store: {{ invoiceData.storeDetails.storeName }}</p>  
         <p>Store Address: {{ invoiceData.storeDetails.address.streetAddress }}</p>
 
         <br>

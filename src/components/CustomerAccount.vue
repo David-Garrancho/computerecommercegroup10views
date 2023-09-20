@@ -21,7 +21,7 @@
   
         <button @click="saveChanges">Save Changes</button>
   
-        <button>Delete</button>
+        <button @click="deleteAccount">Delete</button>
       </div>
     </div>
   </template>
@@ -32,6 +32,7 @@
   import { useStore } from 'vuex';
   import authService from '../Services/authService.js';
   import { useRouter } from 'vue-router';
+  import axios from 'axios';
   
   export default {
     name: 'CustomerAccount',
@@ -70,18 +71,36 @@
       };
   
       const saveChanges = () => {
-        authService.updateUserInfo(editedUser.value)
-          .then(() => {
-            store.commit('setUser', { ...editedUser.value });
-  
-            localStorage.setItem('user', JSON.stringify(editedUser.value));
+        axios.put(`http://localhost:8080/customer/update`, editedUser.value)
+          .then(response => {
+            if (response.status === 200) {
+              store.commit('setUser', { ...editedUser.value });
+              localStorage.setItem('user', JSON.stringify(editedUser.value));
+              console.log('Changes saved successfully!');
+            } else {
+              console.error('Failed to update user information:', response.statusText);
+            }
           })
           .catch(error => {
             console.error('Failed to save changes:', error);
           });
       };
+
+
+      const deleteAccount = () => {
+      const userId = user.value.id;
+
+      axios
+        .delete(`http://localhost:8080/customer/delete/${userId}`)
+        .then(() => {
+          logout();
+        })
+        .catch((error) => {
+          console.error('Failed to delete account:', error);
+        });
+    };
   
-      return { user, editedUser, logout, saveChanges };
+      return { user, editedUser, logout, saveChanges, deleteAccount };
     },
   };
   </script>
