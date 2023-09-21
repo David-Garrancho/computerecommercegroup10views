@@ -34,7 +34,6 @@ export default {
       return this.$store.getters.getUser;
     },
     cartItemCount() {
-
       return this.$store.state.cart.length;
     },
   },
@@ -58,8 +57,17 @@ export default {
   },
   created() {
     this.$store.dispatch('loadCartFromLocalStorage');
+    
+    window.onpopstate = (event) => {
+      if (
+        window.localStorage.getItem("user") !== null &&
+        this.$route.path === "/login"
+      ) {
+        this.$router.push("/");
+      }
+    };
   },
-};
+}
 </script>
 
 <style>

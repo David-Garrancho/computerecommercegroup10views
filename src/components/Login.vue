@@ -1,13 +1,22 @@
 <template>
   <form @submit.prevent="login">
     <h1>Login</h1>
-    <input type="text" placeholder="email" v-model="email">
-    <input type="password" placeholder="password" v-model="password">
+    <input type="text" placeholder="Email" v-model="email">
+    <input type="password" placeholder="Password" v-model="password">
+    
+    <div class="user-type">
+      <label for="customer">Customer</label>
+      <input type="radio" id="customer" value="customer" v-model="userType">
+      
+      <label for="employee">Employee</label>
+      <input type="radio" id="employee" value="employee" v-model="userType">
+    </div>
+    
     <button>Login</button>
     <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
   </form>
 </template>
-  
+
 <script>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
@@ -19,21 +28,22 @@ export default {
     return {
       email: '',
       password: '',
+      userType: '',
       errorMessage: '',
     };
   },
   methods: {
     login() {
-      authService.login(this.email, this.password)
+      authService.login(this.email, this.password, this.userType)
         .then((data) => {
-
           this.$store.dispatch('login', data);
-          
-
-          this.$router.push('/customerdashboard'); 
+          if (this.userType === 'customer') {
+            this.$router.push('/customerdashboard');
+          } else if (this.userType === 'employee') {
+            this.$router.push('/employeedashboard');
+          }
         })
         .catch((error) => {
-
           this.errorMessage = 'Login failed. Please check your credentials.';
           console.log(error);
         });
@@ -41,7 +51,6 @@ export default {
   },
 };
 </script>
-
 
 
 <style scoped>
