@@ -84,6 +84,18 @@ const routes = [
     component: () => import(/* webpackChunkName: "about" */ '../components/Reviews.vue'),
     meta: { requiresAuth: true },
   },
+  {
+    path: '/StockManagement',
+    name: 'StockManagement',
+    component: () => import(/* webpackChunkName: "about" */ '../components/StockManagement.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/EnquiriesList',
+    name: 'EnquiriesList',
+    component: () => import(/* webpackChunkName: "about" */ '../components/EnquiriesList.vue'),
+    meta: { requiresAuth: true },
+  },
 
 ]
 
@@ -93,3 +105,4 @@ const router = createRouter({
 });
 
 export default router;
+

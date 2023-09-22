@@ -8,18 +8,25 @@
         <router-link to="/register">Register</router-link>
       </template>
       <template v-if="user">
-        | <router-link to="/customerdashboard">Customer Dashboard</router-link>
-        | <router-link to="/enquiry">Enquiry</router-link>
-        | <router-link to="/product">Products</router-link> 
-        | <router-link to="/cart">Cart ({{ cartItemCount }})</router-link>
-        | <router-link to="/customeraccount">Account</router-link>
-        | <router-link to="/purchaseHistory">Purchase History</router-link>
+        <template v-if="userType === 'customer'">
+          | <router-link to="/customerdashboard">Customer Dashboard</router-link>
+          | <router-link to="/enquiry">Enquiry</router-link>
+          | <router-link to="/product">Products</router-link> 
+          | <router-link to="/cart">Cart ({{ cartItemCount }})</router-link>
+          | <router-link to="/customeraccount">Account</router-link>
+          | <router-link to="/purchaseHistory">Purchase History</router-link>
+        </template>
+        <template v-else-if="userType === 'employee'">
+          | <router-link to="/StockManagement">Stock</router-link>
+          | <router-link to="/EnquiriesList">Enquiries</router-link>
+        </template>
         | <button @click="logout">Logout</button>
       </template>
     </nav>
     <router-view />
   </div>
 </template>
+
 
 
 <script>
@@ -35,6 +42,9 @@ export default {
     },
     cartItemCount() {
       return this.$store.state.cart.length;
+    },
+    userType() {
+    return localStorage.getItem('userType');
     },
   },
   methods: {

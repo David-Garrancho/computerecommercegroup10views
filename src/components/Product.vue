@@ -1,13 +1,19 @@
 <template>
-  <div v-for="product in products" :key="product.productID" class="product">
-    <h2>{{ product.productName }}</h2>
-    <p>Type: {{ product.productType }}</p>
-    <p>Description: {{ product.productDescription }}</p>
-    <p>Price: R {{ product.productPrice }}</p>
-    <button @click="addToCart(product)">Add to Cart</button>
-    <router-link :to="`/product/reviews/${product.productID}`" class="reviews-button">See Reviews</router-link>
+  <div>
+    <h1>Products</h1>
+    <h2>All prices exclude 15% VAT</h2>
+    <div v-for="product in products" :key="product.productID" class="product">
+      <h2>{{ product.productName }}</h2>
+      <p>Type: {{ product.productType }}</p>
+      <p>Description: {{ product.productDescription }}</p>
+      <p>Price: ${{ product.productPrice }}</p>
+      <p>Stock: {{ product.isStock ? 'Available' : 'Unavailable' }}</p>
+      <button @click="addToCart(product)">Add to Cart</button>
+      <router-link :to="`/product/reviews/${product.productID}`" class="reviews-button">See Reviews</router-link>
+    </div>
   </div>
 </template>
+
 
 
 <script>
