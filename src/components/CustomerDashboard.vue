@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Welcome, {{ user.firstName }} {{ user.lastName }}!</h1>
+    <h1 v-if="user">{{ `Welcome, ${user.firstName} ${user.lastName}!` }}</h1>
   </div>
 </template>
 

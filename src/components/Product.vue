@@ -6,7 +6,7 @@
       <h2>{{ product.productName }}</h2>
       <p>Type: {{ product.productType }}</p>
       <p>Description: {{ product.productDescription }}</p>
-      <p>Price: ${{ product.productPrice }}</p>
+      <p>Price: R{{ product.productPrice }}</p>
       <p>Stock: {{ product.isStock ? 'Available' : 'Unavailable' }}</p>
       <button @click="addToCart(product)">Add to Cart</button>
       <router-link :to="`/product/reviews/${product.productID}`" class="reviews-button">See Reviews</router-link>

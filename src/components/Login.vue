@@ -18,8 +18,6 @@
 </template>
 
 <script>
-import { computed } from 'vue';
-import { useStore } from 'vuex';
 import authService from '../Services/authService.js';
 
 export default {
@@ -32,16 +30,28 @@ export default {
       errorMessage: '',
     };
   },
+  created() {
+    const hasReloaded = localStorage.getItem('hasReloaded');
+
+    if (this.$route.name === 'Login' && hasReloaded !== 'true') {
+      localStorage.setItem('hasReloaded', 'true');
+      location.reload();
+    }
+  },
   methods: {
     login() {
+      this.isLoggingIn = true;
+
       authService.login(this.email, this.password, this.userType)
         .then((data) => {
           this.$store.dispatch('login', data);
           if (this.userType === 'customer') {
             this.$router.push('/customerdashboard');
           } else if (this.userType === 'employee') {
-            this.$router.push('/employeedashboard');
+            this.$router.push('/StockManagement');
           }
+          
+          localStorage.setItem('hasReloaded', 'false');
         })
         .catch((error) => {
           this.errorMessage = 'Login failed. Please check your credentials.';
@@ -51,6 +61,7 @@ export default {
   },
 };
 </script>
+
 
 
 <style scoped>

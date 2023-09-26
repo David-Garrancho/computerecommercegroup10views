@@ -188,7 +188,7 @@ export default {
         console.log('SalesItem record created:', salesItemResponse);
 
         const invoiceData = {
-          storeDetails: selectedStore.value, // Use the selected store
+          storeDetails: selectedStore.value,
           sales: createdSales,
         };
 
@@ -231,11 +231,11 @@ export default {
 }
 
 .cart-items {
-  width: 65%; /* Adjust the width as needed */
+  width: 65%;
 }
 
 .checkout-summary {
-  width: 30%; /* Adjust the width as needed */
+  width: 30%;
   padding: 20px;
   border: 1px solid #ccc;
   box-sizing: border-box;

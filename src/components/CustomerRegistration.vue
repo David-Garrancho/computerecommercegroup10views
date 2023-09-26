@@ -42,7 +42,7 @@
 
       this.registrationSuccess = 'Registration successful!';
       this.registrationError = '';
-      this.$router.push('/customer');
+      this.$router.push('/login');
 
     } catch (error) {
       this.registrationError = 'Registration failed. Please try again.';

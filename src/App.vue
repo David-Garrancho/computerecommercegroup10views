@@ -49,12 +49,23 @@ export default {
   },
   methods: {
     logout() {
-      this.$store.commit('setUser', null);
-      localStorage.removeItem('user');
-      this.$router.push('/login');
-    },
+    this.$store.commit('setUser', null);
+    this.$store.commit('setUserType', null);
+    this.$store.commit('clearCart');
+    
+    localStorage.removeItem('user');
+    localStorage.removeItem('userType');
+    
+    this.$router.push('/login');
+  },
     toggleCart() {
 
+    },
+  },
+  mutations: {
+  clearCart(state) {
+    state.cart = [];
+    localStorage.removeItem('cart');
     },
   },
   components: {
