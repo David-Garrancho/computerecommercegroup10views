@@ -26,34 +26,50 @@
         email: '',
         password: '',
         registrationError: '',
-        registrationSuccess: ''
+        registrationSuccess: '',
       };
     },
     methods: {
-  async registerUser() {
-    try {
-      const userData = {
-        firstName: this.firstName,
-        lastName: this.lastName,
-        email: this.email,
-        password: this.password
-      };
-      const response = await CustomerService.registerCustomer(userData);
+    validateEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    },
+    validatePassword(password) {
+      const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/;
+      return passwordRegex.test(password);
+    },
+    async registerUser() {
+      try {
+        if (!this.validateEmail(this.email)) {
+          this.registrationError = 'Please enter a valid email address.';
+          return;
+        }
+        if (!this.validatePassword(this.password)) {
+          this.registrationError = 'Password must be at least 8 characters long and include at least 1 symbol and 1 capital letter.';
+          return;
+        }
 
-      this.registrationSuccess = 'Registration successful!';
-      this.registrationError = '';
-      this.$router.push('/login');
+        const userData = {
+          firstName: this.firstName,
+          lastName: this.lastName,
+          email: this.email,
+          password: this.password,
+        };
+        const response = await CustomerService.registerCustomer(userData);
 
-    } catch (error) {
-      this.registrationError = 'Registration failed. Please try again.';
-      this.registrationSuccess = '';
-      console.log(error);
-    }
-  }
-}
-
-  };
-  </script>
+        this.registrationSuccess = 'Registration successful!';
+        this.registrationError = '';
+        this.$router.push('/login');
+      } catch (error) {
+        this.registrationError = 'Registration failed. Please try again.';
+        this.registrationSuccess = '';
+        console.log(error);
+      }
+    },
+  },
+};
+</script>
+  
   
   <style scoped>
 nav {

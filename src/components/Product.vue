@@ -7,12 +7,13 @@
       <p>Type: {{ product.productType }}</p>
       <p>Description: {{ product.productDescription }}</p>
       <p>Price: R{{ product.productPrice }}</p>
-      <p>Stock: {{ product.isStock ? 'Available' : 'Unavailable' }}</p>
-      <button @click="addToCart(product)">Add to Cart</button>
+      <p :style="{ color: product.isStock ? 'green' : 'red' }">Stock: {{ product.isStock ? 'Available' : 'Unavailable' }}</p>
+      <button @click="addToCart(product)" :style="{ backgroundColor: product.isStock ? 'green' : 'gray' }" :disabled="!product.isStock">Add to Cart</button>
       <router-link :to="`/product/reviews/${product.productID}`" class="reviews-button">See Reviews</router-link>
     </div>
   </div>
 </template>
+
 
 
 
