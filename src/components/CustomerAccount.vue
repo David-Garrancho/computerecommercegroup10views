@@ -64,7 +64,7 @@ export default {
     };
 
     const saveChanges = () => {
-      axios.put(`http://localhost:8080/customer/update`, editedUser.value)
+      axios.put(`http://localhost:8080/user/update`, editedUser.value)
         .then(response => {
           if (response.status === 200) {
             store.commit('setUser', { ...editedUser.value });
@@ -88,7 +88,7 @@ export default {
       console.log('user.id:', userId);
 
       axios
-        .delete(`http://localhost:8080/customer/delete/${userId}`)
+        .delete(`http://localhost:8080/user/delete/${userId}`)
         .then(() => {
           logout();
           console.log("User deleted successfully");

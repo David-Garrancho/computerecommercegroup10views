@@ -2,16 +2,7 @@
   <form @submit.prevent="login">
     <h1>Login</h1>
     <input type="text" placeholder="Email" v-model="email">
-    <input type="password" placeholder="Password" v-model="password">
-    
-    <div class="user-type">
-      <label for="customer">Customer</label>
-      <input type="radio" id="customer" value="customer" v-model="userType">
-      
-      <label for="employee">Employee</label>
-      <input type="radio" id="employee" value="employee" v-model="userType">
-    </div>
-    
+    <input type="password" placeholder="Password" v-model="password" autocomplete="current-password">
     <button>Login</button>
     <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
   </form>
@@ -26,43 +17,34 @@ export default {
     return {
       email: '',
       password: '',
-      userType: '',
       errorMessage: '',
     };
   },
-  created() {
-    const hasReloaded = localStorage.getItem('hasReloaded');
-
-    if (this.$route.name === 'Login' && hasReloaded !== 'true') {
-      localStorage.setItem('hasReloaded', 'true');
-      location.reload();
-    }
-  },
   methods: {
-    login() {
-      this.isLoggingIn = true;
+    async login() {
+  try {
+    const response = await authService.login(this.email, this.password);
+    console.log('Response from server:', response);
 
-      authService.login(this.email, this.password, this.userType)
-        .then((data) => {
-          this.$store.dispatch('login', data);
-          if (this.userType === 'customer') {
-            this.$router.push('/customerdashboard');
-          } else if (this.userType === 'employee') {
-            this.$router.push('/StockManagement');
-          }
-          
-          localStorage.setItem('hasReloaded', 'false');
-        })
-        .catch((error) => {
-          this.errorMessage = 'Login failed. Please check your credentials.';
-          console.log(error);
-        });
-    },
+    if (response && response.user && response.accessToken) {
+      const { user, accessToken } = response;
+
+      this.$store.dispatch('login', { user, accessToken });
+
+      this.$router.push('/dashboard');
+    } else {
+      console.error('Invalid response from the server:', response);
+      this.errorMessage = 'Unexpected response from the server.';
+    }
+  } catch (error) {
+    this.errorMessage = 'Login failed. Please check your credentials.';
+    console.error(error);
+  }
+},
+
   },
 };
 </script>
-
-
 
 <style scoped>
 .error-message {
@@ -113,5 +95,3 @@ input::placeholder {
   color: #aaa;
 }
 </style>
-
-  

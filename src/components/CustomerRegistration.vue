@@ -16,6 +16,8 @@
   
   <script>
   import CustomerService from '../Services/CustomerService';
+  import authService from '../Services/authService.js';
+
   
   export default {
     name: 'register',

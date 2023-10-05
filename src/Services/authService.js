@@ -1,27 +1,101 @@
 import axios from 'axios';
-import store from './store';
 
-const BASE_URL = 'http://localhost:8080';
+const BASE_URL = 'http://localhost:8080/user';
 
 const authService = {
-  isAuthenticated() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    return user && user.token;
+  login: async (email, password) => {
+    try {
+      const response = await axios.post(`${BASE_URL}/authenticate`, { email, password });
+  
+      console.log('API Response:', response); // Log the entire response object
+  
+      if (response.status === 200 && response.data && response.data.jwt) {
+        const token = response.data.jwt;
+        localStorage.setItem('jwt', token);
+  
+        return { user: response.data, accessToken: token };
+      } else {
+        throw new Error('Invalid response from the server');
+      }
+    } catch (error) {
+      // Handle errors here, e.g., log them or display a user-friendly error message
+      console.error('Login error:', error);
+      throw error;
+    }
+  },
+  
+
+  signUp: async (user) => {
+    try {
+      const response = await axios.post(`${BASE_URL}/register`, user);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  async login(email, password, userType) {
+  logout: () => {
+    localStorage.removeItem('jwt');
+  },
+
+  getCurrentUserJwt: () => {
+    const jwt = localStorage.getItem('jwt');
+    return jwt || null;
+  },
+
+  setAuthInterceptor() {
+    axios.interceptors.request.use((config) => {
+      const token = localStorage.getItem('jwt'); // Retrieve the token from storage
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
+  },
+};
+
+export default authService;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*const authService = {
+  isAuthenticated() {
+    const accessToken = localStorage.getItem('accessToken');
+    return !!accessToken;
+  },
+
+  async login(email, password) {
     try {
-      const response = await axios.post(`${BASE_URL}/${userType}/login`, { email, password });
-      const user = response.data;
-  
-      user.role = userType;
+      const response = await axios.post(`${BASE_URL}/authenticate`, { email, password });
+      const accessToken = response.data.accessToken;
 
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('userType', userType); // Store the user type
+      // Store the access token securely in localStorage
+      localStorage.setItem('accessToken', accessToken);
 
-      store.commit('setUser', user);
-  
-      return user;
+      return accessToken;
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -30,15 +104,11 @@ const authService = {
   
   async logout() {
     try {
-      localStorage.removeItem('user');
-      localStorage.removeItem('userType'); // Remove the stored user type
-
+      localStorage.removeItem('accessToken');
       return Promise.resolve(); 
     } catch (error) {
       console.error('Logout failed:', error);
       throw error;
     }
   },
-};
-
-export default authService;
+};*/
