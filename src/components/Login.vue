@@ -22,26 +22,26 @@ export default {
   },
   methods: {
     async login() {
-  try {
-    const response = await authService.login(this.email, this.password);
-    console.log('Response from server:', response);
+      try {
+        const response = await authService.login(this.email, this.password);
 
-    if (response && response.user && response.accessToken) {
-      const { user, accessToken } = response;
+        if (response && response.accessToken) {
+          // Store the access token in localStorage
+          localStorage.setItem('accessToken', response.accessToken);
 
-      this.$store.dispatch('login', { user, accessToken });
-
-      this.$router.push('/dashboard');
-    } else {
-      console.error('Invalid response from the server:', response);
-      this.errorMessage = 'Unexpected response from the server.';
-    }
-  } catch (error) {
-    this.errorMessage = 'Login failed. Please check your credentials.';
-    console.error(error);
-  }
-},
-
+          // Redirect the user to the dashboard
+          this.$router.push('/customerdashboard');
+        } else {
+          // Handle the case where there's no valid access token in the response
+          console.log('accessToken', response.accessToken);
+          console.error('Invalid response from the server:', response);
+          this.errorMessage = 'Unexpected response from the server.';
+        }
+      } catch (error) {
+        this.errorMessage = 'Login failed. Please check your credentials.';
+        console.error(error);
+      }
+    },
   },
 };
 </script>

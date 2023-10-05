@@ -7,19 +7,16 @@ const authService = {
     try {
       const response = await axios.post(`${BASE_URL}/authenticate`, { email, password });
   
-      console.log('API Response:', response); // Log the entire response object
+      console.log('Response from server:', response);
   
-      if (response.status === 200 && response.data && response.data.jwt) {
-        const token = response.data.jwt;
-        localStorage.setItem('jwt', token);
+      if (response && response.data.accessToken) {
+        localStorage.setItem('accessToken', response.data.accessToken);
   
-        return { user: response.data, accessToken: token };
+        return { accessToken: response.data.accessToken };
       } else {
         throw new Error('Invalid response from the server');
       }
     } catch (error) {
-      // Handle errors here, e.g., log them or display a user-friendly error message
-      console.error('Login error:', error);
       throw error;
     }
   },
@@ -35,17 +32,18 @@ const authService = {
   },
 
   logout: () => {
-    localStorage.removeItem('jwt');
+    localStorage.removeItem('accessToken');
   },
 
   getCurrentUserJwt: () => {
-    const jwt = localStorage.getItem('jwt');
-    return jwt || null;
+    const accessToken = localStorage.getItem('accessToken');
+    console.log('Retrieved token from local storage:', accessToken);
+    return accessToken || null;
   },
 
   setAuthInterceptor() {
     axios.interceptors.request.use((config) => {
-      const token = localStorage.getItem('jwt'); // Retrieve the token from storage
+      const token = authService.getCurrentUserJwt();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -55,7 +53,6 @@ const authService = {
 };
 
 export default authService;
-
 
 
 
