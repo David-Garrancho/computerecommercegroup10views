@@ -2,12 +2,18 @@ import axios from 'axios';
 
 const BASE_URL = 'http://localhost:8080/product';
 
-const ProductService = {
-
-  getProducts: () => {
+class ProductService {
+  getProducts() {
     return axios.get(`${BASE_URL}/getAll`);
-  },
+  }
 
-};
+  getProductById(productId) {
+    return axios.get(`${BASE_URL}/${productId}`);
+  }
 
-export default ProductService;
+  updateStock(product) {
+    return axios.put(`${BASE_URL}/update`, product);
+  }
+}
+
+export default new ProductService();

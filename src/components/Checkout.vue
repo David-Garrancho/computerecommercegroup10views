@@ -1,40 +1,59 @@
 <template>
   <div>
-    <h1>Checkout</h1>
-    <div class="cart-items">
-      <div v-for="(item, index) in parsedCartItems" :key="index" class="cart-item">
-        <h2>{{ item.productName }}</h2>
-        <p>Type: {{ item.productType }}</p>
-        <p>Description: {{ item.productDescription }}</p>
-        <p>Price: R {{ item.productPrice }}</p>
+    <h1>{{ user.firstName }}'s Checkout</h1>
+    <h2>!All prices are excluding VAT!</h2>
+
+    <div class="checkout-content">
+      <div class="cart-items">
+        <div v-for="(item, index) in parsedCartItems" :key="index" class="cart-item">
+          <h2>{{ item.productName }}</h2>
+          <p>Type: {{ item.productType }}</p>
+          <p>Description: {{ item.productDescription }}</p>
+          <p>Price: R {{ item.productPrice }}</p>
+        </div>
+      </div>
+
+      <div class="checkout-summary">
+        <h2>Order Summary</h2>
+        <div class="summary-item">
+          <p>Subtotal:</p>
+          <p>R {{ subtotal }}</p>
+        </div>
+        <div class="summary-item">
+          <p>VAT (15%):</p>
+          <p>R {{ vat }}</p>
+        </div>
+        
+        <div class="summary-item">
+          <p>Total:</p>
+          <p>R {{ total }}</p>
+
+        </div>
+
+        <div class="store-selection">
+          <label for="store">Select a Store:</label>
+          <select v-model="selectedStore" id="store">
+            <option value="" disabled>Please select a store</option>
+            <option v-for="store in storeDetails" :key="store.storeID" :value="store">
+              {{ store.storeName }}
+            </option>
+          </select>
+        </div>
+
+        <button @click="proceedToPayment">Pay Now</button>
       </div>
     </div>
-    <div class="checkout-summary">
-      <h2>Order Summary</h2>
-      <div class="summary-item">
-        <p>Subtotal:</p>
-        <p>R {{ subtotal }}</p>
-      </div>
-      <div class="summary-item">
-        <p>VAT (15%):</p>
-        <p>R {{ vat }}</p>
-      </div>
-      <div class="summary-item">
-        <p>Total:</p>
-        <p>R {{ total }}</p>
-      </div>
-      <button @click="proceedToPayment">Pay Now</button>
-    </div>
-    <div class="store-details">
-    <h2>Store Details</h2>
-    <p>Store Name: {{ storeDetails.storeName }}</p>
-    <p>Address: {{ storeDetails.address }}</p>
-</div>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
 import { createSalesRecord } from '../Services/SalesService';
+import { createSalesItem } from '../Services/SalesItemService';
+import { createInvoice } from '../Services/InvoiceService';
+import { computed, ref, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 
 export default {
   name: 'Checkout',
@@ -46,66 +65,177 @@ export default {
   },
   data() {
     return {
-      subtotal: 0,
-      vat: 0,
-      total: 0,
+      invoiceId: this.$route.params.invoiceId,
+      invoiceData: {},
     };
   },
-  computed: {
-    parsedCartItems() {
+
+
+  setup(props) {
+    const store = useStore();
+    const router = useRouter();
+
+    const user = computed(() => store.getters.getUser);
+    const storeDetails = ref([]);
+    const selectedStore = ref(null);
+
+    const parsedCartItems = computed(() => {
       try {
-        return JSON.parse(this.cartItems);
+        return JSON.parse(props.cartItems);
       } catch (error) {
         console.error('Error parsing cartItems:', error);
         return [];
       }
-    },
-    ItemCount() {
-      return this.$store.getters.ItemCount;
-    },
-  },
-  created() {
-    this.calculateSummary();
-  },
-  methods: {
-    calculateSummary() {
-      const subtotal = this.parsedCartItems.reduce((total, item) => total + item.productPrice, 0);
-      const vat = subtotal * 0.15;
-      this.vat = vat;
-      this.subtotal = subtotal - this.vat;
-      this.total = this.subtotal + this.vat;
-    },
-    async proceedToPayment() {
+    });
+
+    const subtotal = computed(() => {
+      return parsedCartItems.value.reduce((total, item) => total + item.productPrice, 0);
+    });
+
+    const vat = computed(() => {
+      return subtotal.value * 0.15;
+    });
+
+    const total = computed(() => {
+      return subtotal.value + vat.value;
+    });
+
+    const fetchProduct = async (productId) => {
       try {
-        // Prepare sales data
+        const response = await axios.get(`http://localhost:8080/product/read/${productId}`);
+        return response.data;
+      } catch (error) {
+        console.error(`Error fetching product with ID ${productId}:`, error);
+        return null;
+      }
+    };
+
+    const fetchStoreDetails = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/storeDetails/getAll');
+        storeDetails.value = response.data;
+        console.log('Fetched store details:', storeDetails.value);
+      } catch (error) {
+        console.error('Error fetching store details:', error);
+      }
+    };
+
+    onMounted(async () => {
+      await fetchStoreDetails();
+    });
+
+    const proceedToPayment = async () => {
+      try {
+        const userData = user.value;
+
+        if (!storeDetails.value) {
+          console.error('Store details are empty. Please check the fetchStoreDetails function.');
+          return;
+        }
+
+        if (!selectedStore.value) {
+          console.error('Please select a store before proceeding with payment.');
+          return;
+        }
+        if (!userData) {
+          console.error('User data not found.');
+          return;
+        }
+
+        const products = [];
+
+        for (const cartItem of parsedCartItems.value) {
+          if (!cartItem.productID) {
+            console.warn('Skipping cart item with missing productID:', cartItem);
+            continue;
+          }
+
+          const existingProduct = await fetchProduct(cartItem.productID);
+
+          if (existingProduct) {
+            products.push(existingProduct);
+          } else {
+            console.error(`Product not found for cart item with ID ${cartItem.productID}`);
+          }
+        }
+
+        const subtotalValue = products.reduce((total, product) => total + product.productPrice, 0);
+        const vatValue = subtotalValue * 0.15;
+        const totalAmount = subtotalValue + vatValue;
+
         const salesData = {
           saleDate: new Date().toISOString(),
-          totalAmount: this.total,
-          // Assuming you have the customer ID stored somewhere, replace 'CUSTOMER_ID' with the actual customer ID
-          customerID: 'CUSTOMER_ID',
+          customer: userData,
+          totalAmount,
         };
 
-        // Create the sales record
         const createdSales = await createSalesRecord(salesData);
 
         console.log('Sales record created:', createdSales);
-      } catch (error) {
-        console.error('Error creating sales record:', error);
+
+        const salesId = createdSales.saleID;
+
+        console.log('Parsed cart items:', parsedCartItems.value);
+
+        const salesItemData = {
+          sales: createdSales,
+          products: parsedCartItems.value,
+          quantity: 2,
+        };
+        
+        const salesItemResponse = await createSalesItem(salesItemData);
+
+        console.log('SalesItem record created:', salesItemResponse);
+
+        const invoiceData = {
+          storeDetails: selectedStore.value,
+          sales: createdSales,
+        };
+
+        const createdInvoice = await createInvoice(invoiceData);
+
+        console.log('Invoice record created:', createdInvoice);
+        
+        store.dispatch('resetCart');
+
+        router.push(`/invoice-view/${createdInvoice.invoiceNumber}`);
+  
+    } catch (error) {
+        console.error('Error in proceedToPayment:', error);
       }
+    };
+
+    return {
+      user,
+      parsedCartItems,
+      subtotal,
+      vat,
+      total,
+      proceedToPayment,
+      storeDetails,
+      selectedStore,
+    };
+  },
+  computed: {
+    ItemCount() {
+      return this.$store.getters.ItemCount;
     },
   },
 };
 </script>
 
 <style scoped>
+.checkout-content {
+  display: flex;
+  justify-content: space-between;
+}
+
 .cart-items {
-  float: left;
-  width: 70%; 
+  width: 65%;
 }
 
 .checkout-summary {
-  float: right;
-  width: 30%; 
+  width: 30%;
   padding: 20px;
   border: 1px solid #ccc;
   box-sizing: border-box;
@@ -114,5 +244,35 @@ export default {
 .summary-item {
   display: flex;
   justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.store-selection {
+  margin-top: 10px;
+  text-align: center;
+}
+
+label {
+  font-weight: bold;
+}
+
+select {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #0056b3;
 }
 </style>

@@ -3,34 +3,36 @@
     <nav>
       <router-link to="/">Home</router-link> |
       <router-link to="/about">About</router-link>
-      <!-- Conditionally show login and register links based on user login status -->
       <template v-if="!user">
         | <router-link to="/login">Login</router-link> |
         <router-link to="/register">Register</router-link>
       </template>
-      <!-- Conditionally show Customer Dashboard and Logout when the user is logged in -->
       <template v-if="user">
-        | <router-link to="/customerdashboard">Customer Dashboard</router-link>
-        | <router-link to="/product">Products</router-link> 
-        | <router-link to="/cart">Cart ({{ cartItemCount }})</router-link> <!-- Display cart item count -->
-        | <router-link to="/customeraccount">Account</router-link>
-        | <router-link to="/purchaseHistory">Purchase History</router-link>
+        <template v-if="userType === 'customer'">
+          | <router-link to="/customerdashboard">Customer Dashboard</router-link>
+          | <router-link to="/enquiry">Enquiry</router-link>
+          | <router-link to="/product">Products</router-link> 
+          | <router-link to="/cart">Cart ({{ cartItemCount }})</router-link>
+          | <router-link to="/customeraccount">Account</router-link>
+          | <router-link to="/purchaseHistory">Purchase History</router-link>
+        </template>
+        <template v-else-if="userType === 'employee'">
+          | <router-link to="/StockManagement">Stock</router-link>
+          | <router-link to="/EnquiriesList">Enquiries</router-link>
+        </template>
         | <button @click="logout">Logout</button>
       </template>
     </nav>
     <router-view />
-
-    <!-- Conditionally render the Cart component -->
-    <div v-if="isCartOpen">
-      <Cart /> <!-- Include your Cart component here -->
-    </div>
   </div>
 </template>
+
+
 
 <script>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
-import Cart from './components/Cart.vue'; // Import the Cart component
+import Cart from './components/Cart.vue';
 
 export default {
   name: 'App',
@@ -39,34 +41,54 @@ export default {
       return this.$store.getters.getUser;
     },
     cartItemCount() {
-      // Compute the cart item count based on the length of the cart array
       return this.$store.state.cart.length;
+    },
+    userType() {
+    return localStorage.getItem('userType');
     },
   },
   methods: {
     logout() {
-      this.$store.commit('setUser', null);
-      localStorage.removeItem('user');
-      this.$router.push('/login');
-    },
+    this.$store.commit('setUser', null);
+    this.$store.commit('setUserType', null);
+    this.$store.commit('clearCart');
+    
+    localStorage.removeItem('user');
+    localStorage.removeItem('userType');
+    
+    this.$router.push('/login');
+  },
     toggleCart() {
-      // Implement a method to open/close the cart overlay
-      // You can use Vuex to manage the cart state
+
+    },
+  },
+  mutations: {
+  clearCart(state) {
+    state.cart = [];
+    localStorage.removeItem('cart');
     },
   },
   components: {
-    Cart, // Register the Cart component for use in this template
+    Cart,
   },
   data() {
     return {
-      isCartOpen: false, // Initialize the cart state as closed
+      isCartOpen: false,
     };
   },
   created() {
-    // Dispatch the action to load cart data from local storage
     this.$store.dispatch('loadCartFromLocalStorage');
+    
+    window.onpopstate = (event) => {
+      if (
+        window.localStorage.getItem("user") !== null &&
+        this.$route.path === "/login"
+      ) {
+        this.$router.push("/");
+      }
+    };
   },
-};
+}
 </script>
 
 <style>

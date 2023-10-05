@@ -21,70 +21,87 @@
   
         <button @click="saveChanges">Save Changes</button>
   
-        <button>Delete</button>
+        <button @click="deleteAccount">Delete</button>
       </div>
     </div>
   </template>
   
   
   <script>
-  import { computed } from 'vue';
-  import { useStore } from 'vuex';
-  import authService from '../Services/authService.js';
-  import { useRouter } from 'vue-router';
-  
-  export default {
-    name: 'CustomerAccount',
-    setup() {
-      const store = useStore();
-      const user = computed(() => store.getters.getUser);
-      const router = useRouter();
-  
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import authService from '../Services/authService.js';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
 
-      const editedUser = computed(() => ({ ...user.value }));
-  
+export default {
+  name: 'CustomerAccount',
+  setup() {
+    const store = useStore();
+    const user = computed(() => store.getters.getUser);
+    const router = useRouter();
 
-      if (!user.value) {
-        const userData = JSON.parse(localStorage.getItem('user'));
-        if (userData) {
-          store.commit('setUser', userData);
-        }
+    const editedUser = computed(() => ({ ...user.value }));
+
+    if (!user.value) {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      if (userData) {
+        store.commit('setUser', userData);
       }
-  
-      const logout = () => {
+    }
 
-        authService.logout()
-          .then(() => {
+    const logout = () => {
+      authService.logout()
+        .then(() => {
+          store.commit('setUser', null);
+          store.commit('setAuthState', false);
+          localStorage.removeItem('user');
+          router.push('/login');
+        })
+        .catch(error => {
+          console.error('Logout failed:', error);
+        });
+    };
 
-            store.commit('setUser', null);
-
-            store.commit('setAuthState', false);
-  
-            localStorage.removeItem('user');
-  
-            router.push('/login');
-          })
-          .catch(error => {
-            console.error('Logout failed:', error);
-          });
-      };
-  
-      const saveChanges = () => {
-        authService.updateUserInfo(editedUser.value)
-          .then(() => {
+    const saveChanges = () => {
+      axios.put(`http://localhost:8080/customer/update`, editedUser.value)
+        .then(response => {
+          if (response.status === 200) {
             store.commit('setUser', { ...editedUser.value });
-  
             localStorage.setItem('user', JSON.stringify(editedUser.value));
-          })
-          .catch(error => {
-            console.error('Failed to save changes:', error);
-          });
-      };
-  
-      return { user, editedUser, logout, saveChanges };
-    },
-  };
-  </script>
+            console.log('Changes saved successfully!');
+          } else {
+            console.error('Failed to update user information:', response.statusText);
+          }
+        })
+        .catch(error => {
+          console.error('Failed to save changes:', error);
+        });
+    };
+
+    const deleteAccount = () => {
+      console.log('Delete button clicked');
+      console.log('user.value:', user.value);
+
+      const userId = user.value.customerID; 
+
+      console.log('user.id:', userId);
+
+      axios
+        .delete(`http://localhost:8080/customer/delete/${userId}`)
+        .then(() => {
+          logout();
+          console.log("User deleted successfully");
+        })
+        .catch((error) => {
+          console.error('Failed to delete account:', error);
+        });
+    };
+
+    return { user, editedUser, logout, saveChanges, deleteAccount };
+  },
+};
+</script>
   
   <style scoped>
   
