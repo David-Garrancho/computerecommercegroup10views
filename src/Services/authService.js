@@ -28,7 +28,6 @@ const authService = {
 
   logout: () => {
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('accessToken');
   },
 
   getCurrentUserJwt: () => {
@@ -43,7 +42,6 @@ const authService = {
 
   setAuthInterceptor() {
     axios.interceptors.request.use((config) => {
-      const token = authService.getCurrentUserJwt();
       const token = authService.getCurrentUserJwt();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
