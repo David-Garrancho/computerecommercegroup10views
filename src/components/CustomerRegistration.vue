@@ -57,10 +57,16 @@
           email: this.email,
           password: this.password,
         };
+
+        console.log("User data:", userData);
+
         const response = await CustomerService.registerCustomer(userData);
 
         this.registrationSuccess = 'Registration successful!';
         this.registrationError = '';
+
+        //implement potential wait?
+
         this.$router.push('/login');
       } catch (error) {
         this.registrationError = 'Registration failed. Please try again.';

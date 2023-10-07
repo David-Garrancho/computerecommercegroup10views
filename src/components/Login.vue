@@ -1,9 +1,9 @@
 <template>
   <form @submit.prevent="login">
     <h1>Login</h1>
-    <input type="text" placeholder="Email" v-model="email">
+    <input type="text" placeholder="Email" v-model="email" autofocus>
     <input type="password" placeholder="Password" v-model="password" autocomplete="current-password">
-    <button>Login</button>
+    <button type="submit">Login</button>
     <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
   </form>
 </template>
@@ -23,24 +23,22 @@ export default {
   methods: {
     async login() {
   try {
-    const response = await authService.login(this.email, this.password);
-    console.log('Response from server:', response);
+    const loginData = {
+      email: this.email,
+      password: this.password,
+    };
 
-    if (response && response.user && response.accessToken) {
-      const { user, accessToken } = response;
+      const user = await authService.login(loginData);
 
-      this.$store.dispatch('login', { user, accessToken });
-
-      this.$router.push('/dashboard');
-    } else {
-      console.error('Invalid response from the server:', response);
-      this.errorMessage = 'Unexpected response from the server.';
+      if (user) {
+        console.log('User logged in:', user);
+        this.$router.push('/customerdashboard');
+      } 
+    } catch (error) {
+      console.error('An error occurred:', error);
+      this.errorMessage = 'An error occurred. Please try again later.';
     }
-  } catch (error) {
-    this.errorMessage = 'Login failed. Please check your credentials.';
-    console.error(error);
-  }
-},
+  },
 
   },
 };

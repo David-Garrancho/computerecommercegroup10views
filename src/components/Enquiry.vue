@@ -1,7 +1,8 @@
 <template>
-    <div class="container">
-      <h1>Enquiry Form</h1>
-      <form @submit.prevent="submitEnquiry">
+  <div class="container">
+    <h1>Enquiry Form</h1>
+    <p v-if="user">{{ `Welcome, ${user.firstName} ${user.lastName}!` }}</p>
+    <form @submit.prevent="submitEnquiry">
         <div class="form-group">
           <label for="enquiryName">Name:</label>
           <input type="text" id="enquiryName" v-model="enquiryName" required class="form-input" />
@@ -23,7 +24,7 @@
 
   <script>
   import axios from 'axios';
-  import { computed, ref } from 'vue'; // Import ref here
+  import { computed, ref } from 'vue';
   import { useStore } from 'vuex';
   import { useRouter } from 'vue-router';
   
@@ -34,9 +35,9 @@
       const user = computed(() => store.getters.getUser);
       const router = useRouter();
   
-      const enquiryName = ref(""); // Use ref here
-      const enquirySubjectLine = ref(""); // Use ref here
-      const enquiryBodyContent = ref(""); // Use ref here
+      const enquiryName = ref("");
+      const enquirySubjectLine = ref("");
+      const enquiryBodyContent = ref("");
       const enquiryDate = ref(new Date().toISOString());
       const customer = computed(() => user.value);
   

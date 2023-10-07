@@ -26,8 +26,7 @@
 
 
 <script>
-import { computed } from 'vue';
-import { useStore } from 'vuex';
+import { mapActions } from 'vuex';
 import Cart from './components/Cart.vue';
 
 export default {
@@ -39,18 +38,21 @@ export default {
     cartItemCount() {
       return this.$store.state.cart.length;
     },
-    userType() {
-    return localStorage.getItem('userType');
-    },
   },
   methods: {
+    ...mapActions(['logout']),
+    logoutUser() {
+      this.logout();
+      this.$router.push('/login');
+    },
+
     logout() {
     this.$store.commit('setUser', null);
-    this.$store.commit('setUserType', null);
-    this.$store.commit('clearCart');
+    this.$store.commit('resetCart');
+    
     
     localStorage.removeItem('user');
-    localStorage.removeItem('userType');
+    localStorage.removeItem('accessToken');
     
     this.$router.push('/login');
   },

@@ -8,7 +8,11 @@ class CustomerService {
   }
 
   registerCustomer(userData) {
-    return axios.post(`${BASE_URL}/create`, userData);
+    return axios.post(`${BASE_URL}/register`, userData);
+  }
+
+  authenticateCustomer(userData) {
+    return axios.post(`${BASE_URL}/authenticate`, userData);
   }
 
   updateCustomer(userData) {

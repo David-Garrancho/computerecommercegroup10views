@@ -1,5 +1,5 @@
 import { createStore } from 'vuex';
-import authService from './authService'; // Import your authentication service
+import authService from './authService';
 
 const store = createStore({
   state: {
@@ -10,7 +10,7 @@ const store = createStore({
   mutations: {
     setUser(state, user) {
       state.user = user;
-      state.isAuthenticated = !!user; // Update isAuthenticated based on user presence
+      state.isAuthenticated = !!user;
     },
     setAuthState(state, isAuthenticated) {
       state.isAuthenticated = isAuthenticated;
@@ -32,6 +32,8 @@ const store = createStore({
     },
   },
   actions: {
+
+
     addProductToCart({ commit }, product) {
       commit('addToCart', product);
     },
@@ -55,41 +57,19 @@ const store = createStore({
     resetCart({ commit }) {
       commit('resetCart');
     },
-    // New action to handle user login
-    async login({ commit }, { email, password }) {
+
+    logout({ commit }) {
       try {
-        const accessToken = await authService.login(email, password); // Call your authentication service
-        const user = await authService.getUserInfo(); // Call your authentication service to get user info
-
-        // Commit mutations to update user and authentication state
-        commit('setUser', user);
-        commit('setAuthState', true);
-
-        // Store the access token
-        localStorage.setItem('accessToken', accessToken);
-
-        // Return user for further use if needed
-        return user;
-      } catch (error) {
-        // Handle login error
-        console.error('Login failed:', error);
-        throw error;
-      }
-    },
-
-    // New action to handle user logout
-    async logout({ commit }) {
-      try {
-        await authService.logout(); // Call your authentication service to logout
-
-        // Commit mutations to reset user and authentication state
+        // Call the logout method from authService to clear the token
+        authService.logout();
+  
+        // Clear the user data and authentication state
         commit('setUser', null);
         commit('setAuthState', false);
-
-        // Clear the access token
-        localStorage.removeItem('accessToken');
+  
+        // Remove the Authorization header from Axios
+        delete axios.defaults.headers.common['Authorization'];
       } catch (error) {
-        // Handle logout error
         console.error('Logout failed:', error);
         throw error;
       }
@@ -97,7 +77,7 @@ const store = createStore({
   },
   getters: {
     getUser: (state) => state.user,
-    isAuthenticated: (state) => state.isAuthenticated, // New getter to check if the user is authenticated
+    isAuthenticated: (state) => state.isAuthenticated,
     cartItemCount: (state) => state.cart.length,
     cartItems: (state) => state.cart,
   },
