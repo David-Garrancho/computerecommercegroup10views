@@ -1,7 +1,6 @@
 <template>
   <div class="container">
-    <h1>Enquiry Form</h1>
-    <p v-if="user">{{ `Welcome, ${user.firstName} ${user.lastName}!` }}</p>
+    <h1 v-if="customer">{{customer.firstName}}'s Enquiry Form</h1>
     <form @submit.prevent="submitEnquiry">
         <div class="form-group">
           <label for="enquiryName">Name:</label>
@@ -24,7 +23,7 @@
 
   <script>
   import axios from 'axios';
-  import { computed, ref } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useStore } from 'vuex';
   import { useRouter } from 'vue-router';
   
@@ -32,42 +31,84 @@
     name: 'Enquiry',
     setup() {
       const store = useStore();
-      const user = computed(() => store.getters.getUser);
       const router = useRouter();
   
-      const enquiryName = ref("");
-      const enquirySubjectLine = ref("");
-      const enquiryBodyContent = ref("");
+      const enquiryName = ref('');
+      const enquirySubjectLine = ref('');
+      const enquiryBodyContent = ref('');
       const enquiryDate = ref(new Date().toISOString());
-      const customer = computed(() => user.value);
+      const customer = ref(null);
+
+      const getTokenData = () => {
+      const accessToken = localStorage.getItem('accessToken');
+      if (accessToken) {
+        const tokenParts = accessToken.split('.');
+        if (tokenParts.length === 3) {
+          const payload = JSON.parse(atob(tokenParts[1]));
+          console.log('Token payload:', payload);
+          return payload.sub;
+        }
+      }
+      return null;
+    };
+
+    const user = computed(() => {
+      const tokenData = getTokenData();
+      return tokenData ? tokenData : null;
+    });
+
+  
+    const fetchUserDetails = async () => {
+      try {
+        console.log('user email:', user.value);
+        const response = await axios.get(`http://localhost:8080/user/${user.value}`);
+        customer.value = response.data;
+        console.log('user:', customer.value);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
+  
+      onMounted(() => {
+        fetchUserDetails();
+      });
   
       const wordCount = computed(() => {
-        const words = enquiryBodyContent.value.split(/\s+/).filter(word => word.trim() !== "");
+        const words = enquiryBodyContent.value.split(/\s+/).filter(word => word.trim() !== '');
         return words.length;
       });
   
       const submitEnquiry = () => {
-        const enquiryData = {
-          enquiryName: enquiryName.value,
-          enquirySubjectLine: enquirySubjectLine.value,
-          enquiryBodyContent: enquiryBodyContent.value,
-          customer: customer.value,
-          enquiryDate: enquiryDate.value,
-        };
-  
-        axios.post('http://localhost:8080/enquiry/create', enquiryData)
-          .then(response => {
-            console.log('Enquiry submitted successfully:', response.data);
-  
-            enquiryName.value = "";
-            enquirySubjectLine.value = "";
-            enquiryBodyContent.value = "";
-            enquiryDate.value = new Date().toISOString();
-          })
-          .catch(error => {
-            console.error('Failed to submit enquiry:', error);
-          });
+      const userDto = {
+        customerID: customer.value.customerID,
+        firstName: customer.value.firstName,
+        lastName: customer.value.lastName,
+        email: customer.value.email,
+        password: customer.value.password,
       };
+
+      const enquiryData = {
+        enquiryName: enquiryName.value,
+        enquirySubjectLine: enquirySubjectLine.value,
+        enquiryBodyContent: enquiryBodyContent.value,
+        customer: userDto,
+        enquiryDate: enquiryDate.value,
+      };
+
+      axios
+        .post('http://localhost:8080/enquiry/create', enquiryData)
+        .then(response => {
+          console.log('Enquiry submitted successfully:', response.data);
+
+          enquiryName.value = '';
+          enquirySubjectLine.value = '';
+          enquiryBodyContent.value = '';
+          enquiryDate.value = new Date().toISOString();
+        })
+        .catch(error => {
+          console.error('Failed to submit enquiry:', error);
+        });
+    };
   
       return {
         enquiryName,
@@ -81,6 +122,7 @@
     },
   };
   </script>
+  
   
   
 

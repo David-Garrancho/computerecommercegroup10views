@@ -4,8 +4,8 @@
       <router-link to="/">Home</router-link> |
       <router-link to="/about">About</router-link>
       <template v-if="!user">
-        | <router-link to="/login">Login</router-link> |
-        <router-link to="/register">Register</router-link>
+        | <router-link to="/login">Login</router-link> 
+        | <router-link to="/register">Register</router-link>
       </template>
       <template v-if="user">
           | <router-link to="/customerdashboard">Customer Dashboard</router-link>
@@ -16,7 +16,7 @@
           | <router-link to="/purchaseHistory">Purchase History</router-link>
           | <router-link to="/StockManagement">Stock</router-link>
           | <router-link to="/EnquiriesList">Enquiries</router-link>
-        | <button @click="logout">Logout</button>
+          | <button @click="logout">Logout</button>
       </template>
     </nav>
     <router-view />

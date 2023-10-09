@@ -1,71 +1,80 @@
 <template>
-    <div class="container">
-      <div>
-        <h1>Account Information</h1>
-        <div class="form-group">
-          <label for="firstName">First Name:</label>
-          <input type="text" id="firstName" v-model="editedUser.firstName" class="form-input" />
-        </div>
-        <div class="form-group">
-          <label for="lastName">Last Name:</label>
-          <input type="text" id="lastName" v-model="editedUser.lastName" class="form-input" />
-        </div>
-        <div class="form-group">
-          <label for="email">Email:</label>
-          <input type="email" id="email" v-model="editedUser.email" class="form-input" />
-        </div>
-        <div class="form-group">
-          <label for="password">Password:</label>
-          <input type="password" id="password" v-model="editedUser.password" class="form-input" />
-        </div>
-  
-        <button @click="saveChanges">Save Changes</button>
-  
-        <button @click="deleteAccount">Delete</button>
+  <div class="container">
+    <div>
+      <h1>Account Information</h1>
+      <div class="form-group">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" v-model="editedUser.firstName" class="form-input" />
       </div>
+      <div class="form-group">
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" v-model="editedUser.lastName" class="form-input" />
+      </div>
+
+      <button @click="saveChanges">Save Changes</button>
+
+      <button @click="deleteAccount">Delete</button>
     </div>
-  </template>
-  
-  
-  <script>
-import { computed } from 'vue';
-import { useStore } from 'vuex';
-import authService from '../Services/authService.js';
-import { useRouter } from 'vue-router';
+  </div>
+</template>
+
+<script>
 import axios from 'axios';
+import { computed, onMounted, ref } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 
 export default {
-  name: 'CustomerAccount',
+  name: 'AccountPage',
   setup() {
     const store = useStore();
-    const user = computed(() => store.getters.getUser);
-    const router = useRouter();
+    const customer = ref(null);
+    const editedUser = ref({
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+    });
 
-    const editedUser = computed(() => ({ ...user.value }));
-
-    if (!user.value) {
-      const userData = JSON.parse(localStorage.getItem('user'));
-      if (userData) {
-        store.commit('setUser', userData);
+    const getTokenData = () => {
+      const accessToken = localStorage.getItem('accessToken');
+      if (accessToken) {
+        const tokenParts = accessToken.split('.');
+        if (tokenParts.length === 3) {
+          const payload = JSON.parse(atob(tokenParts[1]));
+          console.log('Token payload:', payload);
+          return payload.sub;
+        }
       }
-    }
-
-    const logout = () => {
-      authService.logout()
-        .then(() => {
-          store.commit('setUser', null);
-          store.commit('setAuthState', false);
-          localStorage.removeItem('user');
-          router.push('/login');
-        })
-        .catch(error => {
-          console.error('Logout failed:', error);
-        });
+      return null;
     };
 
+    const user = computed(() => {
+      const tokenData = getTokenData();
+      return tokenData ? tokenData : null;
+    });
+
+    const fetchUserDetails = async () => {
+      try {
+        console.log('user email:', user.value);
+        const response = await axios.get(`http://localhost:8080/user/${user.value}`);
+        customer.value = response.data;
+        console.log('user:', customer.value);
+
+        editedUser.value = { ...customer.value };
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
+
+    onMounted(() => {
+      fetchUserDetails();
+    });
+
     const saveChanges = () => {
-      axios.put(`http://localhost:8080/user/update`, editedUser.value)
-        .then(response => {
+      axios
+        .put(`http://localhost:8080/user/update`, editedUser.value)
+        .then((response) => {
           if (response.status === 200) {
             store.commit('setUser', { ...editedUser.value });
             localStorage.setItem('user', JSON.stringify(editedUser.value));
@@ -74,34 +83,43 @@ export default {
             console.error('Failed to update user information:', response.statusText);
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('Failed to save changes:', error);
         });
     };
 
+    const logout = () => {
+    this.$store.commit('resetCart');
+    localStorage.removeItem('user');
+    localStorage.removeItem('accessToken');
+    this.$router.push('/login');
+  };
+
+
     const deleteAccount = () => {
-      console.log('Delete button clicked');
-      console.log('user.value:', user.value);
+    const userId = customer.value.customerID;
+    console.log("user Id: ", userId);
 
-      const userId = user.value.customerID; 
+    axios
+      .delete(`http://localhost:8080/user/delete/${userId}`)
+      .then(() => {
+        console.log('User deleted successfully');
+        logout();
+      })
+      .catch((error) => {
+        console.error('Failed to delete account:', error);
+      });
+  };
 
-      console.log('user.id:', userId);
 
-      axios
-        .delete(`http://localhost:8080/user/delete/${userId}`)
-        .then(() => {
-          logout();
-          console.log("User deleted successfully");
-        })
-        .catch((error) => {
-          console.error('Failed to delete account:', error);
-        });
-    };
 
-    return { user, editedUser, logout, saveChanges, deleteAccount };
+
+    return { editedUser, saveChanges, deleteAccount };
   },
 };
 </script>
+
+
   
   <style scoped>
   

@@ -1,14 +1,25 @@
 import axios from 'axios';
 
-const instance = axios.create();
+const axiosInstance = axios.create({
+  baseURL: 'http://localhost:8080',
+});
 
-instance.interceptors.response.use(
-  (response) => response,
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
   (error) => {
-    console.error('Axios error:', error);
-    // Handle the error, e.g., display a user-friendly error message
     return Promise.reject(error);
   }
 );
 
-export default instance;
+export default axiosInstance;
+
+
+
+
+

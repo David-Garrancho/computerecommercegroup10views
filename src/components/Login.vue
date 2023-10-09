@@ -28,21 +28,24 @@ export default {
       password: this.password,
     };
 
-      const user = await authService.login(loginData);
+    const response = await authService.login(loginData);
 
-      if (user) {
-        console.log('User logged in:', user);
-        this.$router.push('/customerdashboard');
-      } 
-    } catch (error) {
-      console.error('An error occurred:', error);
-      this.errorMessage = 'An error occurred. Please try again later.';
-    }
-  },
+    console.log('Response from server:', response);
+
+    this.$router.push('/customerdashboard');
+    
+  } catch (error) {
+    this.errorMessage = 'Login failed. Please check your credentials.';
+    console.error('An error occurred:', error);
+  }
+},
 
   },
 };
 </script>
+
+
+
 
 <style scoped>
 .error-message {

@@ -21,56 +21,99 @@
   </template>
   
   <script>
-  import { ref, onMounted } from 'vue';
-  import { useStore } from 'vuex'; // Import Vuex store
-  import axios from 'axios'; // Import Axios here
+  import { ref, onMounted, computed } from 'vue';
+  import { useStore } from 'vuex';
+  import axios from 'axios';
   
   export default {
     name: 'PurchaseHistory',
     setup() {
       const invoices = ref([]);
-      const store = useStore(); // Access the Vuex store
+      const store = useStore();
+      const customer = ref({
+        customerID: null,
+        firstName: '',
+        lastName: '',
+        email: '',
+      });
 
-      
-        console.log('User:', store.state.user);
-        console.log('ID:', store.state.user.customerID);
-  
-      // Fetch user's invoices from the store
-      const fetchInvoices = async () => {
-        try {
-            // Replace with your API endpoint to fetch user's invoices
-            const response = await axios.get('http://localhost:8080/invoice/getAll');
-            const allInvoices = response.data || []; // Provide a default empty array if data is undefined
 
-            // Check if the user data is available
-            const currentUserId = store.state.user.customerID;
-
-            if (currentUserId !== undefined) {
-            // Filter invoices by the current user's ID
-            invoices.value = allInvoices.filter(
-                (invoice) => invoice.sales.customer.customerID === currentUserId
-            );
-            } else {
-            console.error('User data is not available in the store.');
-            }
-        } catch (error) {
-            console.error('Error fetching user invoices:', error);
+      const getTokenData = () => {
+      const accessToken = localStorage.getItem('accessToken');
+      if (accessToken) {
+        const tokenParts = accessToken.split('.');
+        if (tokenParts.length === 3) {
+          const payload = JSON.parse(atob(tokenParts[1]));
+          console.log('Token payload:', payload);
+          return payload.sub;
         }
+      }
+      return null;
+    };
+
+    const user = computed(() => {
+      const tokenData = getTokenData();
+      return tokenData ? tokenData : null;
+    });
+
+  
+    const fetchUserDetails = async () => {
+  try {
+    console.log('user email:', user.value);
+    const response = await axios.get(`http://localhost:8080/user/${user.value}`);
+    customer.value = response.data;
+    console.log('user:', customer.value);
+  } catch (error) {
+    console.error('Error fetching user details:', error);
+  }
+};
+
+  
+const fetchInvoices = async () => {
+  try {
+    if (customer.value !== null && customer.value.customerID !== null) {
+      console.log('Before fetchInvoices, customer.value:', customer.value);
+
+      const response = await axios.get('http://localhost:8080/invoice/getAll');
+      const allInvoices = response.data || [];
+
+      console.log('Received allInvoices data:', allInvoices);
+
+      const currentUserId = customer.value.customerID;
+
+      console.log('current user id: ', currentUserId);
+
+      if (currentUserId !== undefined) {
+        invoices.value = allInvoices.filter(
+          (invoice) => invoice.sales.customer.customerID === currentUserId
+        );
+
+        console.log('Filtered invoices:', invoices.value);
+      } else {
+        console.error('User data is not available in the store.');
+      }
+    } else {
+      console.error('Customer data is null or customerID is null. Make sure it is fetched successfully.');
+    }
+  } catch (error) {
+    console.error('Error fetching user invoices:', error);
+  }
 };
   
-      onMounted(() => {
-        fetchInvoices();
-      });
+    onMounted(async () => {
+  await fetchUserDetails();
+   fetchInvoices();
+});
   
-      return {
-        invoices,
-      };
-    },
-  };
+  return {
+    invoices,
+    customer,
+    };
+  },
+};
   </script>
   
   <style scoped>
-  /* Add your component-specific styles here */
   .container {
   max-width: 450px; 
   margin: 0 auto;

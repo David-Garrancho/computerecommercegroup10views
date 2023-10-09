@@ -3,7 +3,7 @@
       <h1 class="page-title">Product Reviews</h1>
       <h2 class="product-title">Product: {{ productName }}</h2>
   
-      <form @submit.prevent="submitReview" v-if="isAuthenticated" class="review-form">
+      <form @submit.prevent="submitReview" class="review-form">
         <h3 class="form-title">Write a Review</h3>
         <div class="form-group">
           <label for="rating" class="form-label">Rating:</label>
@@ -27,7 +27,7 @@
   
   <script>
   import axios from 'axios';
-  import { computed, ref, onMounted, reactive } from 'vue';
+  import { computed, ref, onMounted } from 'vue';
   import { useRoute } from 'vue-router';
   import { useStore } from 'vuex';
   
@@ -44,17 +44,44 @@
         reviewText: '',
       });
   
-      const isAuthenticated = computed(() => {
-        return true; // Replace with your authentication logic
+
+      const productObject = ref(null);
+      const customer = ref(null);
+  
+      const getTokenData = () => {
+        const accessToken = localStorage.getItem('accessToken');
+        if (accessToken) {
+          const tokenParts = accessToken.split('.');
+          if (tokenParts.length === 3) {
+            const payload = JSON.parse(atob(tokenParts[1]));
+            console.log('Token payload:', payload);
+            return payload.sub;
+          }
+        }
+        return null;
+      };
+  
+      const user = computed(() => {
+        const tokenData = getTokenData();
+        return tokenData ? tokenData : null;
       });
   
-      const productObject = ref(null); // Store the product object
+      const fetchUserDetails = async () => {
+        try {
+          console.log('user email:', user.value);
+          const response = await axios.get(`http://localhost:8080/user/${user.value}`);
+          customer.value = response.data;
+          console.log('user:', customer.value);
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+        }
+      };
   
       const getReviews = () => {
         console.log('Fetching reviews for product ID:', productId.value);
   
         axios
-          .get('http://localhost:8080/review/getAll')
+          .get(`http://localhost:8080/review/getAll`)
           .then((response) => {
             reviews.value = response.data.filter(
               (review) => review.product.productID === Number(productId.value)
@@ -85,12 +112,11 @@
         return 'Anonymous Customer';
       };
   
-      // Fetch and store the product object based on productId
       const fetchProductObject = () => {
         axios
           .get(`http://localhost:8080/product/read/${productId.value}`)
           .then((response) => {
-            productObject.value = response.data; // Store the product object
+            productObject.value = response.data;
             console.log('Received product object:', productObject.value);
           })
           .catch((error) => {
@@ -102,16 +128,16 @@
         if (productId.value && productObject.value) {
           console.log('Submitting review for product ID:', productId.value);
           console.log('Review data:', {
-            product: productObject.value, // Use the stored product object
+            product: productObject.value,
             rating: newReview.value.rating,
-            customer: store.getters.getUser,
+            customer: customer.value,
           });
   
           axios
             .post('http://localhost:8080/review/create', {
-              product: productObject.value, // Use the stored product object
+              product: productObject.value,
               rating: newReview.value.rating,
-              customer: store.getters.getUser,
+              customer: customer.value,
             })
             .then((response) => {
               newReview.value.rating = 1;
@@ -131,7 +157,8 @@
         console.log('productId:', productId.value);
         getProductName();
         getReviews();
-        fetchProductObject(); // Fetch and store the product object
+        fetchProductObject();
+        fetchUserDetails(); // Fetch user details on component mount
       });
   
       return {
@@ -139,10 +166,9 @@
         productId,
         productName,
         newReview,
-        isAuthenticated,
         submitReview,
         getCustomerInfo,
-        productObject, // Export the product object
+        productObject,
       };
     },
   };
