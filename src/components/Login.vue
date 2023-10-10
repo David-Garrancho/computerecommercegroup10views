@@ -9,41 +9,65 @@
 </template>
 
 <script>
+import { ref } from 'vue';
 import authService from '../Services/authService.js';
+import axios from 'axios';
+import router from '../router';
 
 export default {
   name: 'Login',
-  data() {
-    return {
-      email: '',
-      password: '',
-      errorMessage: '',
+  setup() {
+    const email = ref('');
+    const password = ref('');
+    const errorMessage = ref('');
+
+    const login = async () => {
+      try {
+        const loginData = {
+          email: email.value,
+          password: password.value,
+        };
+
+        const user = await authService.login(loginData);
+        console.log('User logged in:', user);
+
+        
+
+
+        const tokenData = await fetchUserDetails();
+
+        if (tokenData && tokenData.roleNames) {
+        if (tokenData.roleNames.includes('CUSTOMER')) {
+          router.push('/customerdashboard');
+        } else if (tokenData.roleNames.includes('EMPLOYEE')) {
+          router.push('/StockManagement');
+            }
+          }
+      } catch (error) {
+        console.error('An error occurred:', error);
+        errorMessage.value = 'An error occurred. Please try again later.';
+      }
     };
-  },
-  methods: {
-    async login() {
-  try {
-    const loginData = {
-      email: this.email,
-      password: this.password,
+
+    const fetchUserDetails = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8080/user/${email.value}`);
+        const userTokenData = response.data;
+        console.log('User details:', userTokenData);
+        console.log('User role:', userTokenData.roleNames);
+        localStorage.setItem('userRoles', JSON.stringify(userTokenData.roleNames));
+        return userTokenData;
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+        return null;
+      }
     };
 
-    const response = await authService.login(loginData);
 
-    console.log('Response from server:', response);
-
-    this.$router.push('/customerdashboard');
-    
-  } catch (error) {
-    this.errorMessage = 'Login failed. Please check your credentials.';
-    console.error('An error occurred:', error);
-  }
-},
-
+    return { email, password, errorMessage, login };
   },
 };
 </script>
-
 
 
 

@@ -50,6 +50,14 @@
   
   export default {
     name: 'StockManagement',
+    created() {
+    const hasLoggedIn = localStorage.getItem('hasLoggedIn');
+    
+    if (!hasLoggedIn) {
+      localStorage.setItem('hasLoggedIn', 'true');
+      location.reload();
+    }
+  },
     data() {
       return {
         products: [],

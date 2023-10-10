@@ -8,32 +8,37 @@
         | <router-link to="/register">Register</router-link>
       </template>
       <template v-if="user">
+        <template v-if="userRoles.includes('CUSTOMER')">
           | <router-link to="/customerdashboard">Customer Dashboard</router-link>
           | <router-link to="/enquiry">Enquiry</router-link>
           | <router-link to="/product">Products</router-link> 
           | <router-link to="/cart">Cart ({{ cartItemCount }})</router-link>
           | <router-link to="/customeraccount">Account</router-link>
           | <router-link to="/purchaseHistory">Purchase History</router-link>
+        </template>
+        <template v-if="userRoles.includes('EMPLOYEE')">
           | <router-link to="/StockManagement">Stock</router-link>
           | <router-link to="/EnquiriesList">Enquiries</router-link>
-          | <button @click="logout">Logout</button>
+        </template>
+        | <button @click="logout">Logout</button>
       </template>
     </nav>
     <router-view />
   </div>
 </template>
 
-
-
 <script>
+import { computed } from 'vue';
 import { mapActions } from 'vuex';
-import Cart from './components/Cart.vue';
 
 export default {
   name: 'App',
   computed: {
     user() {
       return this.$store.getters.getUser;
+    },
+    userRoles() {
+      return JSON.parse(localStorage.getItem('userRoles'));
     },
     cartItemCount() {
       return this.$store.state.cart.length;
@@ -45,29 +50,24 @@ export default {
       this.logout();
       this.$router.push('/login');
     },
-
     logout() {
-    this.$store.commit('setUser', null);
-    this.$store.commit('resetCart');
-    
-    
-    localStorage.removeItem('user');
-    localStorage.removeItem('accessToken');
-    
-    this.$router.push('/login');
-  },
+      this.$store.commit('setUser', null);
+      this.$store.commit('resetCart');
+      localStorage.removeItem('hasLoggedIn');
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('userRoles'); // Remove userRoles when logging out
+      this.$router.push('/login');
+    },
     toggleCart() {
-
+      // Implement cart toggling logic
     },
   },
   mutations: {
-  clearCart(state) {
-    state.cart = [];
-    localStorage.removeItem('cart');
+    clearCart(state) {
+      state.cart = [];
+      localStorage.removeItem('cart');
     },
-  },
-  components: {
-    Cart,
   },
   data() {
     return {
@@ -76,19 +76,9 @@ export default {
   },
   created() {
     this.$store.dispatch('loadCartFromLocalStorage');
-    
-    window.onpopstate = (event) => {
-      if (
-        window.localStorage.getItem("user") !== null &&
-        this.$route.path === "/login"
-      ) {
-        this.$router.push("/");
-      }
-    };
   },
-}
+};
 </script>
-
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;

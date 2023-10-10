@@ -16,9 +16,18 @@ import axios from 'axios';
 
 export default {
   name: 'CustomerDashboard',
+  created() {
+    const hasLoggedIn = localStorage.getItem('hasLoggedIn');
+    
+    if (!hasLoggedIn) {
+      localStorage.setItem('hasLoggedIn', 'true');
+      location.reload();
+    }
+  },
   setup() {
     const store = useStore();
     const router = useRouter();
+    let hasReloaded = false;
 
     const getTokenData = () => {
       const accessToken = localStorage.getItem('accessToken');
@@ -40,19 +49,6 @@ export default {
 
     const userDetails = ref(null);
 
-    const logout = () => {
-      authService.logout()
-        .then(() => {
-          store.commit('setUser', null);
-          store.commit('setAuthState', false);
-          localStorage.removeItem('accessToken');
-          router.push('/login');
-        })
-        .catch(error => {
-          console.error('Logout failed:', error);
-        });
-    };
-
     const fetchUserDetails = async () => {
       try {
         console.log('user email:', user.value);
@@ -66,7 +62,26 @@ export default {
 
     onMounted(() => {
       fetchUserDetails();
+
+      if (hasReloaded && user.value) {
+      hasReloaded = true; 
+      location.reload();
+    }
     });
+
+    const logout = () => {
+      authService.logout()
+        .then(() => {
+          store.commit('setUser', null);
+          store.commit('setAuthState', false);
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('hasLoggedIn');
+          router.push('/login');
+        })
+        .catch(error => {
+          console.error('Logout failed:', error);
+        });
+    };
 
     return { user, logout, userDetails };
   },
