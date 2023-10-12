@@ -97,7 +97,18 @@ const routes = [
     component: () => import(/* webpackChunkName: "about" */ '../components/EnquiriesList.vue'),
     meta: { requiresAuth: true },
   },
-
+  {
+    path: '/OrderList',
+    name: 'Order',
+    component: () => import(/* webpackChunkName: "about" */ '../components/Order.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/StoreCreation',
+    name: 'StoreCreation',
+    component: () => import(/* webpackChunkName: "about" */ '../components/StoreCreation.vue'),
+    meta: { requiresAuth: true },
+  },
 ]
 
 const router = createRouter({

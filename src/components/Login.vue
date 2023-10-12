@@ -56,6 +56,7 @@ export default {
         console.log('User details:', userTokenData);
         console.log('User role:', userTokenData.roleNames);
         localStorage.setItem('userRoles', JSON.stringify(userTokenData.roleNames));
+        
         return userTokenData;
       } catch (error) {
         console.error('Error fetching user details:', error);

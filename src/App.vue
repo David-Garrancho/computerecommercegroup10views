@@ -19,6 +19,8 @@
         <template v-if="userRoles.includes('EMPLOYEE')">
           | <router-link to="/StockManagement">Stock</router-link>
           | <router-link to="/EnquiriesList">Enquiries</router-link>
+          | <router-link to="/OrderList">Orders</router-link>
+          | <router-link to="/StoreCreation">Store Details</router-link>
         </template>
         | <button @click="logout">Logout</button>
       </template>
