@@ -221,12 +221,13 @@ export default {
 
     console.log('Customer id:', customer.value.customerID);
     console.log('Sales record id:', createdSales.saleID);
+
     
     
     const salesItemData = {
     products: parsedCartItems.value,
     sales: createdSales,
-    quantity: 2,
+    quantity: parsedCartItems.value.length,
     };
 
     const salesItemResponse = await createSalesItem(salesItemData);

@@ -1,7 +1,43 @@
 <template>
+     <h3>Current locations</h3>
+      <table class="table table-striped centered-table custom-table">
+        <colgroup>
+          <col style="width: 15%;">
+          <col style="width: 15%;">
+          <col style="width: 20%;">
+          <col style="width: 20%;">
+          <col style="width: 20%;">
+          <col style="width: 10%;">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Store Name</th>
+            <th>Telephone number</th>
+            <th>Email</th>
+            <th>Street Address</th>
+            <th>City</th>
+            <th>Country</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="store in storeDetails" :key="store.storeID"> 
+          <td>{{ store.storeName }}</td> 
+          <td>{{ store.storeTel }}</td> 
+          <td>{{ store.storeEmail }}</td> 
+          <td>{{ store.address ? store.address.streetAddress : 'N/A' }}</td>
+          <td>{{ store.address ? store.address.city.cityName : 'N/A' }}</td>
+          <td>{{ store.address ? store.address.city.country.countryName : 'N/A' }}</td>
+          <button @click="deleteStoreDetails(store.storeID)">delete</button>
+        </tr>
+      </tbody>
+      </table>
+
+      <br><br>
+
     <div class="store-creation">
       <h2>Create Store Location</h2>
-  
+
       <!-- Form for creating a country -->
       <div class="form">
         <h3>Create Country</h3>
@@ -74,30 +110,35 @@
         <button @click="createStoreDetails">Create Store Location</button>
       </div>
     </div>
+
+  
   </template>
   
   <script>
   import axios from 'axios';
+  import StoreDetailsService from '../Services/StoreDetailsService';
+
   
   export default {
     name: 'StoreCreation',
     data() {
       return {
-        countryName: '',
-        cityName: '',
-        streetAddress: '',
-        postalCode: '',
-        storeName: '',
-        storeTel: '',
-        storeEmail: '',
-        selectedCountry: null,
-        selectedCity: null,
-        selectedAddress: null,
-        countries: [],
-        cities: [],
-        addresses: [],
-      };
-    },
+      storeDetails: [],
+      countryName: '',
+      cityName: '',
+      streetAddress: '',
+      postalCode: '',
+      storeName: '',
+      storeTel: '',
+      storeEmail: '',
+      selectedCountry: null,
+      selectedCity: null,
+      selectedAddress: null,
+      countries: [],
+      cities: [],
+      addresses: [],
+    };
+  },
     methods: {
       createCountry() {
         axios
@@ -215,6 +256,27 @@
               console.error('Failed to load addresses:', error);
             });
       },
+
+      getStoreDetails() {
+    StoreDetailsService.getStoreDetails().then((response) => {
+      console.log(response.data);
+      this.storeDetails = response.data;
+    });
+  },
+
+  deleteStoreDetails(storeID) {
+      if (confirm('Are you sure you want to delete this StoreDetails?')) {
+        axios
+          .delete(`http://localhost:8080/storeDetails/delete/${storeID}`)
+          .then(() => {
+            this.storeDetails = this.storeDetails.filter((store) => store.storeID !== storeID);
+            console.log('Store details deleted successfully');
+          })
+          .catch((error) => {
+            console.error('Failed to delete store details:', error);
+          });
+      }
+    },
     },
     watch: {
       selectedCountry: 'loadCities',
@@ -224,6 +286,7 @@
       this.loadCountries();
       this.loadCities();
       this.loadAddresses();
+      this.getStoreDetails();
     },
   };
   </script>
@@ -276,4 +339,28 @@ button {
 button:hover {
   background-color: #8780e8;
 }
+
+.table-container {
+    margin: 20px;
+    overflow-x: auto;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .table th, .table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+  }
+
+  .table th {
+    background-color: #f5f5f5;
+  }
+
+  .table tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+  }
 </style>
