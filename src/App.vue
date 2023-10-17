@@ -58,11 +58,11 @@ export default {
       localStorage.removeItem('hasLoggedIn');
       localStorage.removeItem('user');
       localStorage.removeItem('accessToken');
-      localStorage.removeItem('userRoles'); // Remove userRoles when logging out
+      localStorage.removeItem('userRoles');
       this.$router.push('/login');
     },
     toggleCart() {
-      // Implement cart toggling logic
+
     },
   },
   mutations: {

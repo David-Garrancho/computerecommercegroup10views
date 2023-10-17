@@ -31,8 +31,6 @@ export default {
         const user = await authService.login(loginData);
         console.log('User logged in:', user);
 
-        
-
 
         const tokenData = await fetchUserDetails();
 
