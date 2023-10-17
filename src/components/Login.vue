@@ -1,63 +1,69 @@
 <template>
   <form @submit.prevent="login">
     <h1>Login</h1>
-    <input type="text" placeholder="Email" v-model="email">
-    <input type="password" placeholder="Password" v-model="password">
-    
-    <div class="user-type">
-      <label for="customer">Customer</label>
-      <input type="radio" id="customer" value="customer" v-model="userType">
-      
-      <label for="employee">Employee</label>
-      <input type="radio" id="employee" value="employee" v-model="userType">
-    </div>
-    
-    <button>Login</button>
+    <input type="text" placeholder="Email" v-model="email" autofocus>
+    <input type="password" placeholder="Password" v-model="password" autocomplete="current-password">
+    <button type="submit">Login</button>
     <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
   </form>
 </template>
 
 <script>
+import { ref } from 'vue';
 import authService from '../Services/authService.js';
+import axios from 'axios';
+import router from '../router';
 
 export default {
   name: 'Login',
-  data() {
-    return {
-      email: '',
-      password: '',
-      userType: '',
-      errorMessage: '',
-    };
-  },
-  created() {
-    const hasReloaded = localStorage.getItem('hasReloaded');
+  setup() {
+    const email = ref('');
+    const password = ref('');
+    const errorMessage = ref('');
 
-    if (this.$route.name === 'Login' && hasReloaded !== 'true') {
-      localStorage.setItem('hasReloaded', 'true');
-      location.reload();
-    }
-  },
-  methods: {
-    login() {
-      this.isLoggingIn = true;
+    const login = async () => {
+      try {
+        const loginData = {
+          email: email.value,
+          password: password.value,
+        };
 
-      authService.login(this.email, this.password, this.userType)
-        .then((data) => {
-          this.$store.dispatch('login', data);
-          if (this.userType === 'customer') {
-            this.$router.push('/customerdashboard');
-          } else if (this.userType === 'employee') {
-            this.$router.push('/StockManagement');
+        const user = await authService.login(loginData);
+        console.log('User logged in:', user);
+
+
+        const tokenData = await fetchUserDetails();
+
+        if (tokenData && tokenData.roleNames) {
+        if (tokenData.roleNames.includes('CUSTOMER')) {
+          router.push('/customerdashboard');
+        } else if (tokenData.roleNames.includes('EMPLOYEE')) {
+          router.push('/StockManagement');
+            }
           }
-          
-          localStorage.setItem('hasReloaded', 'false');
-        })
-        .catch((error) => {
-          this.errorMessage = 'Login failed. Please check your credentials.';
-          console.log(error);
-        });
-    },
+      } catch (error) {
+        console.error('An error occurred:', error);
+        errorMessage.value = 'An error occurred. Please try again later.';
+      }
+    };
+
+    const fetchUserDetails = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8080/user/${email.value}`);
+        const userTokenData = response.data;
+        console.log('User details:', userTokenData);
+        console.log('User role:', userTokenData.roleNames);
+        localStorage.setItem('userRoles', JSON.stringify(userTokenData.roleNames));
+        
+        return userTokenData;
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+        return null;
+      }
+    };
+
+
+    return { email, password, errorMessage, login };
   },
 };
 </script>
@@ -113,5 +119,3 @@ input::placeholder {
   color: #aaa;
 }
 </style>
-
-  

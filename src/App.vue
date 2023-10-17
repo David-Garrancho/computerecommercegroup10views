@@ -4,11 +4,11 @@
       <router-link to="/">Home</router-link> |
       <router-link to="/about">About</router-link>
       <template v-if="!user">
-        | <router-link to="/login">Login</router-link> |
-        <router-link to="/register">Register</router-link>
+        | <router-link to="/login">Login</router-link> 
+        | <router-link to="/register">Register</router-link>
       </template>
       <template v-if="user">
-        <template v-if="userType === 'customer'">
+        <template v-if="userRoles.includes('CUSTOMER')">
           | <router-link to="/customerdashboard">Customer Dashboard</router-link>
           | <router-link to="/enquiry">Enquiry</router-link>
           | <router-link to="/product">Products</router-link> 
@@ -16,9 +16,11 @@
           | <router-link to="/customeraccount">Account</router-link>
           | <router-link to="/purchaseHistory">Purchase History</router-link>
         </template>
-        <template v-else-if="userType === 'employee'">
+        <template v-if="userRoles.includes('EMPLOYEE')">
           | <router-link to="/StockManagement">Stock</router-link>
           | <router-link to="/EnquiriesList">Enquiries</router-link>
+          | <router-link to="/OrderList">Orders</router-link>
+          | <router-link to="/StoreCreation">Store Details</router-link>
         </template>
         | <button @click="logout">Logout</button>
       </template>
@@ -27,12 +29,9 @@
   </div>
 </template>
 
-
-
 <script>
 import { computed } from 'vue';
-import { useStore } from 'vuex';
-import Cart from './components/Cart.vue';
+import { mapActions } from 'vuex';
 
 export default {
   name: 'App',
@@ -40,36 +39,37 @@ export default {
     user() {
       return this.$store.getters.getUser;
     },
+    userRoles() {
+      return JSON.parse(localStorage.getItem('userRoles'));
+    },
     cartItemCount() {
       return this.$store.state.cart.length;
     },
-    userType() {
-    return localStorage.getItem('userType');
-    },
   },
   methods: {
+    ...mapActions(['logout']),
+    logoutUser() {
+      this.logout();
+      this.$router.push('/login');
+    },
     logout() {
-    this.$store.commit('setUser', null);
-    this.$store.commit('setUserType', null);
-    this.$store.commit('clearCart');
-    
-    localStorage.removeItem('user');
-    localStorage.removeItem('userType');
-    
-    this.$router.push('/login');
-  },
+      this.$store.commit('setUser', null);
+      this.$store.commit('resetCart');
+      localStorage.removeItem('hasLoggedIn');
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('userRoles');
+      this.$router.push('/login');
+    },
     toggleCart() {
 
     },
   },
   mutations: {
-  clearCart(state) {
-    state.cart = [];
-    localStorage.removeItem('cart');
+    clearCart(state) {
+      state.cart = [];
+      localStorage.removeItem('cart');
     },
-  },
-  components: {
-    Cart,
   },
   data() {
     return {
@@ -78,19 +78,9 @@ export default {
   },
   created() {
     this.$store.dispatch('loadCartFromLocalStorage');
-    
-    window.onpopstate = (event) => {
-      if (
-        window.localStorage.getItem("user") !== null &&
-        this.$route.path === "/login"
-      ) {
-        this.$router.push("/");
-      }
-    };
   },
-}
+};
 </script>
-
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;

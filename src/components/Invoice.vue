@@ -4,6 +4,9 @@
     <div v-if="Object.keys(invoiceData).length > 0">
       <p>Invoice Number: {{ invoiceData.invoiceNumber }}</p>
       <p>Sales Number: {{ invoiceData.sales.saleID }}</p>
+      <p>Customer: </p>
+      <p>first name: {{ invoiceData.sales.customer.firstName }}</p>
+      <p>last name: {{ invoiceData.sales.customer.lastName }}</p>
       <p>Date of Sale: {{ invoiceData.sales.saleDate }}</p>
       <p>VAT: <b>R {{ (invoiceData.sales.totalAmount - invoiceData.sales.totalAmountExclVat).toFixed(2) }}</b></p>
       <p>Total Amount (excl. Vat): <b>R {{ calculateTotalAmountExclVat() }}</b></p>

@@ -1,4 +1,5 @@
 import { createStore } from 'vuex';
+import authService from './authService';
 
 const store = createStore({
   state: {
@@ -9,7 +10,7 @@ const store = createStore({
   mutations: {
     setUser(state, user) {
       state.user = user;
-      state.isAuthenticated = !!user; 
+      state.isAuthenticated = !!user;
     },
     setAuthState(state, isAuthenticated) {
       state.isAuthenticated = isAuthenticated;
@@ -26,11 +27,13 @@ const store = createStore({
       state.cart = cart;
     },
     resetCart(state) {
-    state.cart = [];
-    localStorage.removeItem('cart');
-  },
+      state.cart = [];
+      localStorage.removeItem('cart');
+    },
   },
   actions: {
+
+
     addProductToCart({ commit }, product) {
       commit('addToCart', product);
     },
@@ -54,9 +57,27 @@ const store = createStore({
     resetCart({ commit }) {
       commit('resetCart');
     },
+
+    logout({ commit }) {
+      try {
+        // Call the logout method from authService to clear the token
+        authService.logout();
+  
+        // Clear the user data and authentication state
+        commit('setUser', null);
+        commit('setAuthState', false);
+  
+        // Remove the Authorization header from Axios
+        delete axios.defaults.headers.common['Authorization'];
+      } catch (error) {
+        console.error('Logout failed:', error);
+        throw error;
+      }
+    },
   },
   getters: {
     getUser: (state) => state.user,
+    isAuthenticated: (state) => state.isAuthenticated,
     cartItemCount: (state) => state.cart.length,
     cartItems: (state) => state.cart,
   },

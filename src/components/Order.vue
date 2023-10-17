@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-      <h1 class="title">Purchase History</h1>
+      <h1 class="title">Orders</h1>
       <div v-if="invoices.length > 0">
         <ul class="invoice-list">
           <li v-for="invoice in invoices" :key="invoice.invoiceNumber" class="invoice-item">
@@ -15,7 +15,7 @@
         </ul>
       </div>
       <div v-else>
-        <p class="no-history">No purchase history available.</p>
+        <p class="no-history">No orders are available.</p>
       </div>
     </div>
   </template>
@@ -26,7 +26,7 @@
   import axios from 'axios';
   
   export default {
-    name: 'PurchaseHistory',
+    name: 'Order',
     setup() {
       const invoices = ref([]);
       const store = useStore();
@@ -71,32 +71,13 @@
   
 const fetchInvoices = async () => {
   try {
-    if (customer.value !== null && customer.value.customerID !== null) {
-      console.log('Before fetchInvoices, customer.value:', customer.value);
+    const response = await axios.get('http://localhost:8080/invoice/getAll');
+    const allInvoices = response.data || [];
 
-      const response = await axios.get('http://localhost:8080/invoice/getAll');
-      const allInvoices = response.data || [];
-
-      console.log('Received allInvoices data:', allInvoices);
-
-      const currentUserId = customer.value.customerID;
-
-      console.log('current user id: ', currentUserId);
-
-      if (currentUserId !== undefined) {
-        invoices.value = allInvoices.filter(
-          (invoice) => invoice.sales.customer.customerID === currentUserId
-        );
-
-        console.log('Filtered invoices:', invoices.value);
-      } else {
-        console.error('User data is not available in the store.');
-      }
-    } else {
-      console.error('Customer data is null or customerID is null. Make sure it is fetched successfully.');
-    }
+    console.log('Received allInvoices data:', allInvoices);
+    invoices.value = allInvoices;
   } catch (error) {
-    console.error('Error fetching user invoices:', error);
+    console.error('Error fetching invoices:', error);
   }
 };
   

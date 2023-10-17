@@ -1,6 +1,7 @@
 <template>
   <div>
-    <h1>{{ user.firstName }}'s Checkout</h1>
+    <h1 v-if="customer">{{customer.firstName}}'s Checkout</h1>
+
     <h2>!All prices are excluding VAT!</h2>
 
     <div class="checkout-content">
@@ -75,9 +76,45 @@ export default {
     const store = useStore();
     const router = useRouter();
 
-    const user = computed(() => store.getters.getUser);
+    const customer = ref(null);
     const storeDetails = ref([]);
     const selectedStore = ref(null);
+
+
+    const getTokenData = () => {
+      const accessToken = localStorage.getItem('accessToken');
+      if (accessToken) {
+        const tokenParts = accessToken.split('.');
+        if (tokenParts.length === 3) {
+          const payload = JSON.parse(atob(tokenParts[1]));
+          console.log('Token payload:', payload);
+          return payload.sub;
+        }
+      }
+      return null;
+    };
+
+    const user = computed(() => {
+      const tokenData = getTokenData();
+      return tokenData ? tokenData : null;
+    });
+
+  
+    const fetchUserDetails = async () => {
+    try {
+      console.log('user email:', user.value);
+      const response = await axios.get(`http://localhost:8080/user/${user.value}`);
+      customer.value = response.data;
+      console.log('user:', customer.value);
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
+  };
+  
+      onMounted(() => {
+        fetchUserDetails();
+      });
+
 
     const parsedCartItems = computed(() => {
       try {
@@ -163,47 +200,55 @@ export default {
         const vatValue = subtotalValue * 0.15;
         const totalAmount = subtotalValue + vatValue;
 
-        const salesData = {
-          saleDate: new Date().toISOString(),
-          customer: userData,
-          totalAmount,
-        };
 
-        const createdSales = await createSalesRecord(salesData);
+    const userDto = {
+      customerID: customer.value.customerID,
+      firstName: customer.value.firstName,
+      lastName: customer.value.lastName,
+      email: customer.value.email,
+      password: customer.value.password,
+    };
 
-        console.log('Sales record created:', createdSales);
+    const salesData = {
+      saleDate: new Date().toISOString(),
+      totalAmount,
+      customer: userDto,
+    };
 
-        const salesId = createdSales.saleID;
+    const createdSales = await createSalesRecord(salesData);
 
-        console.log('Parsed cart items:', parsedCartItems.value);
+    console.log('Sales record created:', createdSales);
 
-        const salesItemData = {
-          sales: createdSales,
-          products: parsedCartItems.value,
-          quantity: 2,
-        };
-        
-        const salesItemResponse = await createSalesItem(salesItemData);
+    console.log('Customer id:', customer.value.customerID);
+    console.log('Sales record id:', createdSales.saleID);
 
-        console.log('SalesItem record created:', salesItemResponse);
+    
+    
+    const salesItemData = {
+    products: parsedCartItems.value,
+    sales: createdSales,
+    quantity: parsedCartItems.value.length,
+    };
 
-        const invoiceData = {
+    const salesItemResponse = await createSalesItem(salesItemData);
+
+    console.log('SalesItem record created:', salesItemResponse);
+
+    const invoiceData = {
           storeDetails: selectedStore.value,
           sales: createdSales,
         };
 
-        const createdInvoice = await createInvoice(invoiceData);
+    const createdInvoice = await createInvoice(invoiceData);
 
-        console.log('Invoice record created:', createdInvoice);
-        
-        store.dispatch('resetCart');
+    console.log('Invoice record created:', createdInvoice);
 
-        router.push(`/invoice-view/${createdInvoice.invoiceNumber}`);
-  
-    } catch (error) {
-        console.error('Error in proceedToPayment:', error);
-      }
-    };
+    store.dispatch('resetCart');
+    router.push(`/invoice-view/${createdInvoice.invoiceNumber}`);
+  } catch (error) {
+    console.error('Error in proceedToPayment:', error);
+  }
+};
 
     return {
       user,
@@ -214,6 +259,7 @@ export default {
       proceedToPayment,
       storeDetails,
       selectedStore,
+      customer,
     };
   },
   computed: {

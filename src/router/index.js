@@ -23,23 +23,24 @@ const routes = [
     path: '/register',
     name: 'Register',
     component: () => import(/* webpackChunkName: "about" */ '../components/CustomerRegistration.vue'),
-
   },
   {
     path: '/customer',
     name: 'Customer',
     component: () => import(/* webpackChunkName: "about" */ '../components/Customer.vue'),
+    meta: { requiresAuth: true },
   },
   {
     path: '/customeraccount',
     name: 'customeraccount',
-    component: () => import(/* webpackChunkName: "about" */ '../components/CustomerAccount.vue')
+    component: () => import(/* webpackChunkName: "about" */ '../components/CustomerAccount.vue'),
+    meta: { requiresAuth: true },
   },
   {
     path: '/customerdashboard',
     name: 'CustomerDashboard',
     component: () => import(/* webpackChunkName: "about" */ '../components/CustomerDashboard.vue'),
-    meta: { requiresAuth: true }, // Add a meta field to specify that this route requires authentication
+    meta: { requiresAuth: true }, 
   },
   {
     path: '/product',
@@ -97,13 +98,25 @@ const routes = [
     component: () => import(/* webpackChunkName: "about" */ '../components/EnquiriesList.vue'),
     meta: { requiresAuth: true },
   },
-
+  {
+    path: '/OrderList',
+    name: 'Order',
+    component: () => import(/* webpackChunkName: "about" */ '../components/Order.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/StoreCreation',
+    name: 'StoreCreation',
+    component: () => import(/* webpackChunkName: "about" */ '../components/StoreCreation.vue'),
+    meta: { requiresAuth: true },
+  },
 ]
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
 });
+
 
 
 export default router;

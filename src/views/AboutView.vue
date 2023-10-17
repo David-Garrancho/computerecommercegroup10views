@@ -25,15 +25,15 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="store in storeDetails" :key="store.id"> 
-            <td>{{ store.storeName }}</td> 
-            <td>{{ store.storeTel }}</td> 
-            <td>{{ store.storeEmail }}</td> 
-            <td>{{ store.address.streetAddress }}</td>
-            <td>{{ store.address.city.cityName }}</td>
-            <td>{{ store.address.city.country.countryName }}</td>
-          </tr>
-        </tbody>
+          <tr v-for="store in storeDetails" :key="store.storeID"> 
+          <td>{{ store.storeName }}</td> 
+          <td>{{ store.storeTel }}</td> 
+          <td>{{ store.storeEmail }}</td> 
+          <td>{{ store.address ? store.address.streetAddress : 'N/A' }}</td>
+          <td>{{ store.address ? store.address.city.cityName : 'N/A' }}</td>
+          <td>{{ store.address ? store.address.city.country.countryName : 'N/A' }}</td>
+        </tr>
+      </tbody>
       </table>
     </div>
   </div>
@@ -51,15 +51,19 @@ export default {
     };
   },
   methods: {
-    getStoreDetails(){
-      StoreDetailsService.getStoreDetails().then((response) => {
-        this.storeDetails = response.data;
-      });
-    }
-  },
-  created(){
-    this.getStoreDetails();
+  getStoreDetails() {
+    StoreDetailsService.getStoreDetails().then((response) => {
+      console.log(response.data);
+      this.storeDetails = response.data;
+    });
   }
+},
+
+created() {
+  this.getStoreDetails();
+  console.log(this.storeDetails);
+}
+
 };
 </script>
 
