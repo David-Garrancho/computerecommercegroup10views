@@ -1,6 +1,6 @@
 # computerecommercegroup10views
 
-## Project setup
+## Project setup (Front end)
 ```
 npm install
 ```
